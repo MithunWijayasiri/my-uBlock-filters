@@ -1,5 +1,5 @@
 [Adblock Plus 2.0]
-! Title: Custom Filters by MithunWijayasiri (Mobile)
+! Title: Custom Filters by Mithun
 ! Description: Personal rules for uBlock Origin, and Brave Shields (Mobile).
 ! Version: 202512080827
 ! Last modified: 2025-12-08T08:27:36Z
