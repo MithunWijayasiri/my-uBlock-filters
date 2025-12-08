@@ -1,18 +1,40 @@
 name: CI/CD Filter Pipeline
 
 on:
-  push:
-    branches: [ "workspace" ]
-    paths: 
-      - 'filters-PC.txt'
-      - 'filters-Mobile.txt'
+  schedule:
+    # Run once daily at midnight UTC
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for changes between workspace and main
+        id: check
+        run: |
+          git fetch origin main workspace
+          # Check if there are any differences between workspace and main
+          if git diff --quiet origin/main origin/workspace -- filters-PC.txt filters-Mobile.txt; then
+            echo "No changes detected in filter files"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in filter files"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
   test-rules:
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
