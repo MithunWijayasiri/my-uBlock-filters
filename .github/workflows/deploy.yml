@@ -36,24 +36,49 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
     steps:
       - uses: actions/checkout@v4
-      
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
       # Setup pnpm
       - uses: pnpm/action-setup@v2
         with:
           version: 9
-      
-      - uses: actions/setup-node@v4
+
+      - name: Capture Playwright version
+        id: pw-version
+        run: |
+          VERSION=$(node -p "require('./package.json').devDependencies?.playwright || require('./package.json').dependencies?.playwright || ''")
+          CLEANED_VERSION=${VERSION//[^0-9.]}
+          if [ -z "$CLEANED_VERSION" ]; then
+            echo "Could not determine Playwright version" >&2
+            exit 1
+          fi
+          echo "version=$CLEANED_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
         with:
-          node-version: lts/*
-          cache: 'pnpm'
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-browsers-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+      - name: Install Playwright Browsers (Chromium only)
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
         run: pnpm exec playwright test --reporter=json,html
