@@ -1,8 +1,8 @@
 [Adblock Plus 2.0]
 ! Title: My Custom Filters (PC)
 ! Description: Personal rules for uBlock Origin, and Brave Shields (Desktop).
-! Version: 202512080605
-! Last modified: 2025-12-08T06:05:01Z
+! Version: 202512080755
+! Last modified: 2025-12-08T07:55:28Z
 ! Expires: 1 day
 ! Homepage: https://github.com/MithunWijayasiri/my-uBlock-filters
 
