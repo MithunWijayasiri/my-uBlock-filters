@@ -5,6 +5,10 @@ pnpm-debug.log
 package-lock.json
 yarn.lock
 
+# Keep manifests tracked
+!package.json
+!pnpm-lock.yaml
+
 # Playwright
 test-results/
 playwright-report/

@@ -65,10 +65,10 @@ www.youtube.com###expandable-metadata:has-text(Summary)
 
 ! Hide product overlay engagement panel
 youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
+youtube.com##.ytShoppingTimelyShelfContentViewModelHost.ytShoppingTimelyShelfContentViewModelIsVisible
 
 ! Silence banner prompts
-
-! Hide ad-blocker nag toast
+! Hide interruptions warning toast
 www.youtube.com##tp-yt-paper-toast#toast:has(yt-button-renderer#action-button a[href*=blocker])
 
 ! Hide slowed and reverb videos
@@ -81,13 +81,10 @@ www.youtube.com##ytd-grid-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 
-! Hide interruptions warning toast
-www.youtube.com##tp-yt-paper-toast#toast:has(yt-button-renderer#action-button a[href*=blocker])
-
 ! Tidy Gemini interface
 
 ! Remove nano banana promo banner
-gemini.google.com##.experiment-driven-banner.ng-tns-c4015799474-0.ng-star-inserted
+gemini.google.com##.ng-star-inserted.ng-tns-c1903904110-0.experiment-driven-banner
 
 ! Hide My Stuff preview rail
 gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
