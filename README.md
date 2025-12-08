@@ -1,0 +1,38 @@
+# My Custom uBlock Filters
+
+This repository contains my personal custom filter lists for uBlock Origin.
+
+## Lists available
+
+### 🖥️ PC Filters
+General filters optimized for desktop browsing.
+
+[**Subscribe**](https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-PC.txt) | [View Source](filters-PC.txt)
+
+**URL:**
+```
+https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-PC.txt
+```
+
+### 📱 Mobile Filters
+Filters optimized for mobile browsers (e.g. Firefox Mobile with uBO).
+
+[**Subscribe**](https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-Mobile.txt) | [View Source](filters-Mobile.txt)
+
+**URL:**
+```
+https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-Mobile.txt
+```
+
+## How to use
+
+1. Click on the **Subscribe** link above (uBlock Origin should intercept this).
+2. If that doesn't work, copy the URL and add it manually in uBlock Origin settings:
+   - Go to **Dashboard** > **Filter lists**.
+   - Scroll to the bottom and expand **Custom**.
+   - Check **Import...** and paste the URL.
+   - Click **Apply changes**.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
