@@ -1,0 +1,77 @@
+name: CI/CD Filter Pipeline
+
+on:
+  push:
+    branches: [ "workspace" ]
+    paths: 
+      - 'filters-PC.txt'
+      - 'filters-Mobile.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Setup pnpm
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: pnpm exec playwright test
+
+  release-filters:
+    needs: test-rules
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/workspace'
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main 
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "FilterBot"
+          git config --global user.email "bot@my-uBlock-filters.local"
+
+      - name: Merge Workspace into Main
+        run: |
+          git merge origin/workspace --no-ff -m "Merge updates from workspace"
+
+      - name: Update Version Headers
+        run: |
+          NEW_VERSION=$(date -u +"%Y%m%d%H%M")
+          NEW_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Loop through both filter files
+          for file in filters-PC.txt filters-Mobile.txt; do
+            if [ -f "$file" ]; then
+              sed -i "s/^! Version:.*/! Version: $NEW_VERSION/" "$file"
+              sed -i "s/^! Last modified:.*/! Last modified: $NEW_DATE/" "$file"
+              echo "Updated header for $file"
+            fi
+          done
+
+      - name: Commit and Push to Production
+        run: |
+          git add filters-PC.txt filters-Mobile.txt
+          git commit -m "Release: Update version headers to $(date -u +'%Y%m%d%H%M')"
+          git push origin main

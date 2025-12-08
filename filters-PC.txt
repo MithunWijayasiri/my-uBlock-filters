@@ -1,0 +1,47 @@
+[Adblock Plus 2.0]
+! Title: My Custom Filters (PC)
+! Description: Personal rules for uBlock Origin, and Brave Shields (Desktop).
+! Version: 202512080000
+! Last modified: 2025-12-08T00:00:00Z
+! Expires: 1 day
+! Homepage: https://github.com/YourUsername/my-uBlock-filters
+! License: Unlicense
+!
+! ==============================================================================
+! GLOBAL & ACCOUNTS
+! ==============================================================================
+||accounts.google.com/gsi/*$xhr,script,3p
+
+! ==============================================================================
+! ALLOW LIST
+! ==============================================================================
+google.com#@#.YzCcne:remove()
+github.com#@#div > button[data-testid="copilot-popover-button"]
+github.com#@#div.AppHeader-CopilotChat
+github.com#@#div.copilotPreview__container
+github.com#@#li > a[href="/copilot"]
+
+! ==============================================================================
+! GOOGLE GEMINI
+! ==============================================================================
+gemini.google.com##.experiment-driven-banner.ng-tns-c4015799474-0.ng-star-inserted
+gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
+
+! ==============================================================================
+! YOUTUBE
+! ==============================================================================
+www.youtube.com###top-row.ytd-watch-metadata #sponsor-button
+www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Thanks"])
+www.youtube.com###top-row.ytd-watch-metadata ytd-download-button-renderer
+www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Clip"])
+youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
+youtube.com##.ytp-videowall-still[data-is-mix="true"]
+
+! YouTube Home/Search Cleanup
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-section-renderer:has(ytd-rich-item-renderer[is-post])
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-item-renderer[is-post]
+youtube.com##ytd-search ytd-item-section-renderer>#contents>:is(:not(ytd-video-renderer,yt-showing-results-for-renderer,[icon-name="promo-full-height:EMPTY_SEARCH"]),ytd-video-renderer:has([aria-label="Shorts"])),ytd-secondary-search-container-renderer
+youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
+youtube.com##ytd-compact-radio-renderer, :is(#related yt-lockup-view-model,ytd-compact-video-renderer):has([href*="&start_radio=1"])
+youtube.com##ytd-radio-renderer, :is(ytd-search yt-lockup-view-model,ytd-video-renderer[is-search]):has([href*="&start_radio=1"][aria-label])
+youtube.com##ytd-compact-playlist-renderer:has([title^="YouTube"])
