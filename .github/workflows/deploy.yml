@@ -53,13 +53,12 @@ jobs:
       - name: Capture Playwright version
         id: pw-version
         run: |
-          VERSION=$(node -p "require('./package.json').devDependencies?.playwright || require('./package.json').dependencies?.playwright || ''")
-          CLEANED_VERSION=${VERSION//[^0-9.]}
-          if [ -z "$CLEANED_VERSION" ]; then
+          VERSION=$(grep -oP '"@playwright/test":\s*"\^?\K[0-9.]+' package.json)
+          if [ -z "$VERSION" ]; then
             echo "Could not determine Playwright version" >&2
             exit 1
           fi
-          echo "version=$CLEANED_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
         uses: actions/cache@v4
