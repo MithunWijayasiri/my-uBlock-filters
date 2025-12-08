@@ -5,9 +5,9 @@ This repository contains my personal custom filter lists for uBlock Origin.
 ## Lists available
 
 ### 🖥️ PC Filters
-General filters optimized for desktop browsing.
+General filters optimized for desktop browsing (e.g. uBlock Origin, Brave Shields).
 
-[**Subscribe**](https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-PC.txt) | [View Source](filters-PC.txt)
+[**Subscribe**](abp:subscribe?location=https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-PC.txt&title=Custom%20Filters%20by%20MithunWijayasiri%20(PC)) | [View Source](filters-PC.txt)
 
 **URL:**
 ```
@@ -15,9 +15,9 @@ https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filter
 ```
 
 ### 📱 Mobile Filters
-Filters optimized for mobile browsers (e.g. Firefox Mobile with uBO).
+Filters optimized for mobile browsers (e.g. Firefox Mobile with uBO, Brave Shields).
 
-[**Subscribe**](https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-Mobile.txt) | [View Source](filters-Mobile.txt)
+[**Subscribe**](abp:subscribe?location=https://raw.githubusercontent.com/MithunWijayasiri/my-uBlock-filters/main/filters-Mobile.txt&title=Custom%20Filters%20by%20MithunWijayasiri%20(Mobile)) | [View Source](filters-Mobile.txt)
 
 **URL:**
 ```
