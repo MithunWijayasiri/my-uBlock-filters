@@ -7,4 +7,35 @@
 ! Homepage: https://github.com/YourUsername/my-uBlock-filters
 ! License: Unlicense
 !
-! Placeholder for Mobile specific rules
+
+! --- Google Search --- Allow specific element
+google.com#@#.YzCcne:remove()
+
+! --- YouTube Mobile - Mixes and Auto-Playlists ---
+! Hide Mix shelf in search and home
+m.youtube.com##ytm-radio-renderer
+m.youtube.com##ytm-compact-radio-renderer
+
+! Hide videos linking to Mix playlists (start_radio=1)
+m.youtube.com##ytm-video-with-context-renderer:has(a[href*="start_radio=1"])
+m.youtube.com##ytm-compact-video-renderer:has(a[href*="start_radio=1"])
+m.youtube.com##ytm-rich-item-renderer:has(a[href*="start_radio=1"])
+
+! Hide videos linking to auto-generated playlists (list=RD)
+m.youtube.com##ytm-video-with-context-renderer:has(a[href*="list=RD"])
+m.youtube.com##ytm-compact-video-renderer:has(a[href*="list=RD"])
+
+! --- YouTube Mobile - UI Elements ---
+! Hide topic/category filter bar
+m.youtube.com##ytm-feed-filter-chip-bar-renderer
+
+! --- YouTube Mobile - Slowed & Reverb Content ---
+! Hide videos with both "slowed" and "reverb" in title
+m.youtube.com##ytm-video-with-context-renderer:has-text(/slowed/i):has-text(/reverb/i)
+m.youtube.com##ytm-compact-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
+m.youtube.com##ytm-rich-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+
+! --- YouTube Music Mobile - Slowed & Reverb Content ---
+! Hide slowed & reverb tracks from YouTube Music
+music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
