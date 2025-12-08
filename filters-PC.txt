@@ -65,6 +65,7 @@ www.youtube.com###expandable-metadata:has-text(Summary)
 
 ! Hide product overlay engagement panel
 youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
+youtube.com##.ytShoppingTimelyShelfContentViewModelHost.ytShoppingTimelyShelfContentViewModelIsVisible
 
 ! Silence banner prompts
 ! Hide interruptions warning toast
