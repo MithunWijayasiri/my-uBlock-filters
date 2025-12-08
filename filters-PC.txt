@@ -7,41 +7,83 @@
 ! Homepage: https://github.com/YourUsername/my-uBlock-filters
 ! License: Unlicense
 !
-! ==============================================================================
-! GLOBAL & ACCOUNTS
-! ==============================================================================
+
+! Google Accounts: Block Google Sign-In Dialog
 ||accounts.google.com/gsi/*$xhr,script,3p
 
-! ==============================================================================
-! ALLOW LIST
-! ==============================================================================
-google.com#@#.YzCcne:remove()
-github.com#@#div > button[data-testid="copilot-popover-button"]
-github.com#@#div.AppHeader-CopilotChat
-github.com#@#div.copilotPreview__container
-github.com#@#li > a[href="/copilot"]
+! --- YouTube - Mixes and Playlists ---
+! Source: https://www.reddit.com/r/uBlockOrigin/wiki/solutions/youtube/
 
-! ==============================================================================
-! GOOGLE GEMINI
-! ==============================================================================
-gemini.google.com##.experiment-driven-banner.ng-tns-c4015799474-0.ng-star-inserted
-gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
+! Hide Mix playlists from homepage
+youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
 
-! ==============================================================================
-! YOUTUBE
-! ==============================================================================
-www.youtube.com###top-row.ytd-watch-metadata #sponsor-button
-www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Thanks"])
-www.youtube.com###top-row.ytd-watch-metadata ytd-download-button-renderer
-www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Clip"])
-youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
+! Hide Mix playlists from sidebar and related videos
+youtube.com##ytd-compact-radio-renderer, :is(#related yt-lockup-view-model,ytd-compact-video-renderer):has([href*="&start_radio=1"])
+
+! Hide Mix playlists from search results
+youtube.com##ytd-radio-renderer, :is(ytd-search yt-lockup-view-model,ytd-video-renderer[is-search]):has([href*="&start_radio=1"][aria-label])
+
+! Hide Mix playlists from video end cards
 youtube.com##.ytp-videowall-still[data-is-mix="true"]
 
-! YouTube Home/Search Cleanup
-www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-section-renderer:has(ytd-rich-item-renderer[is-post])
-www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-item-renderer[is-post]
-youtube.com##ytd-search ytd-item-section-renderer>#contents>:is(:not(ytd-video-renderer,yt-showing-results-for-renderer,[icon-name="promo-full-height:EMPTY_SEARCH"]),ytd-video-renderer:has([aria-label="Shorts"])),ytd-secondary-search-container-renderer
-youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
-youtube.com##ytd-compact-radio-renderer, :is(#related yt-lockup-view-model,ytd-compact-video-renderer):has([href*="&start_radio=1"])
-youtube.com##ytd-radio-renderer, :is(ytd-search yt-lockup-view-model,ytd-video-renderer[is-search]):has([href*="&start_radio=1"][aria-label])
+! Hide YouTube Music playlists from sidebar
 youtube.com##ytd-compact-playlist-renderer:has([title^="YouTube"])
+
+! --- YouTube - Player Buttons ---
+
+! Hide "Join" button below player
+www.youtube.com###top-row.ytd-watch-metadata #sponsor-button
+
+! Hide "Thanks" button below player
+www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Thanks"])
+
+! Hide "Download" button below player
+www.youtube.com###top-row.ytd-watch-metadata ytd-download-button-renderer
+
+! Hide "Clip" button below player
+www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Clip"])
+
+! --- YouTube - Shorts ---
+
+! Hide Shorts from search results (keep only regular videos)
+youtube.com##ytd-search ytd-item-section-renderer>#contents>:is(:not(ytd-video-renderer,yt-showing-results-for-renderer,[icon-name="promo-full-height:EMPTY_SEARCH"]),ytd-video-renderer:has([aria-label="Shorts"])),ytd-secondary-search-container-renderer
+
+! --- YouTube - Community Posts ---
+
+! Hide community posts section from homepage
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-section-renderer:has(ytd-rich-item-renderer[is-post])
+
+! Hide individual community posts from homepage
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-item-renderer[is-post]
+
+! --- YouTube - AI and Product Features ---
+
+! Hide AI summary section (keep "Ask" feature)
+www.youtube.com##.ytVideoDescriptionYouchatSectionViewModelHost
+www.youtube.com###expandable-metadata:has-text(Summary)
+
+! Hide product overlay panel
+youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
+
+! --- YouTube - Notifications and Banners ---
+
+! Hide ad blocker detection banner
+www.youtube.com##tp-yt-paper-toast#toast:has(yt-button-renderer#action-button a[href*=blocker])
+
+! --- YouTube Desktop: Hide Slowed AND Reverb ---
+www.youtube.com##ytd-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
+www.youtube.com##ytd-rich-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+www.youtube.com##ytd-compact-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
+www.youtube.com##ytd-grid-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
+
+! --- YT Music Desktop: Hide Slowed AND Reverb ---
+music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+
+! --- Google Gemini ---
+
+! Hide experiment banner
+gemini.google.com##.experiment-driven-banner.ng-tns-c4015799474-0.ng-star-inserted
+
+! Hide recent items preview
+gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
