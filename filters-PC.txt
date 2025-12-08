@@ -4,86 +4,90 @@
 ! Version: 202512080000
 ! Last modified: 2025-12-08T00:00:00Z
 ! Expires: 1 day
-! Homepage: https://github.com/YourUsername/my-uBlock-filters
-! License: Unlicense
-!
+! Homepage: https://github.com/MithunWijayasiri/my-uBlock-filters
 
-! Google Accounts: Block Google Sign-In Dialog
+! Allow AI overview cards
+google.com#@#.YzCcne:remove()
+
+! Block third-party sign-in prompts
 ||accounts.google.com/gsi/*$xhr,script,3p
 
-! --- YouTube - Mixes and Playlists ---
-! Source: https://www.reddit.com/r/uBlockOrigin/wiki/solutions/youtube/
+! Reduce auto-generated mix playlists
+! Source: uBO community YouTube solutions
 
-! Hide Mix playlists from homepage
+! Hide mix shelf on home
 youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
 
-! Hide Mix playlists from sidebar and related videos
+! Remove mix entries from sidebar and related lists
 youtube.com##ytd-compact-radio-renderer, :is(#related yt-lockup-view-model,ytd-compact-video-renderer):has([href*="&start_radio=1"])
 
-! Hide Mix playlists from search results
+! Remove mix entries from search results
 youtube.com##ytd-radio-renderer, :is(ytd-search yt-lockup-view-model,ytd-video-renderer[is-search]):has([href*="&start_radio=1"][aria-label])
 
-! Hide Mix playlists from video end cards
+! Hide mix suggestions on end cards
 youtube.com##.ytp-videowall-still[data-is-mix="true"]
 
-! Hide YouTube Music playlists from sidebar
+! Hide branded music playlists in sidebar
 youtube.com##ytd-compact-playlist-renderer:has([title^="YouTube"])
 
-! --- YouTube - Player Buttons ---
+! Remove secondary engagement buttons
 
-! Hide "Join" button below player
+! Remove Join button below player
 www.youtube.com###top-row.ytd-watch-metadata #sponsor-button
 
-! Hide "Thanks" button below player
+! Remove Thanks button below player
 www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Thanks"])
 
-! Hide "Download" button below player
+! Remove Download button below player
 www.youtube.com###top-row.ytd-watch-metadata ytd-download-button-renderer
 
-! Hide "Clip" button below player
+! Remove Clip button below player
 www.youtube.com###top-row.ytd-watch-metadata yt-button-view-model:has([aria-label="Clip"])
 
-! --- YouTube - Shorts ---
+! Filter out Shorts in search
 
-! Hide Shorts from search results (keep only regular videos)
+! Keep standard videos in search results
 youtube.com##ytd-search ytd-item-section-renderer>#contents>:is(:not(ytd-video-renderer,yt-showing-results-for-renderer,[icon-name="promo-full-height:EMPTY_SEARCH"]),ytd-video-renderer:has([aria-label="Shorts"])),ytd-secondary-search-container-renderer
 
-! --- YouTube - Community Posts ---
+! Suppress community posts on home
 
-! Hide community posts section from homepage
+! Remove community posts section on home
 www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-section-renderer:has(ytd-rich-item-renderer[is-post])
 
-! Hide individual community posts from homepage
+! Remove individual community post tiles on home
 www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-item-renderer[is-post]
 
-! --- YouTube - AI and Product Features ---
+! Hide AI and promo panels
 
-! Hide AI summary section (keep "Ask" feature)
+! Remove AI summary panel (keep Ask)
 www.youtube.com##.ytVideoDescriptionYouchatSectionViewModelHost
 www.youtube.com###expandable-metadata:has-text(Summary)
 
-! Hide product overlay panel
+! Hide product overlay engagement panel
 youtube.com##.ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-products"]
 
-! --- YouTube - Notifications and Banners ---
+! Silence banner prompts
 
-! Hide ad blocker detection banner
+! Hide ad-blocker nag toast
 www.youtube.com##tp-yt-paper-toast#toast:has(yt-button-renderer#action-button a[href*=blocker])
 
-! --- YouTube Desktop: Hide Slowed AND Reverb ---
+! Hide slowed and reverb videos
 www.youtube.com##ytd-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 www.youtube.com##ytd-rich-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 www.youtube.com##ytd-compact-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 www.youtube.com##ytd-grid-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 
-! --- YT Music Desktop: Hide Slowed AND Reverb ---
+! Hide slowed and reverb tracks
 music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 
-! --- Google Gemini ---
+! Hide interruptions warning toast
+www.youtube.com##tp-yt-paper-toast#toast:has(yt-button-renderer#action-button a[href*=blocker])
 
-! Hide experiment banner
+! Tidy Gemini interface
+
+! Remove nano banana promo banner
 gemini.google.com##.experiment-driven-banner.ng-tns-c4015799474-0.ng-star-inserted
 
-! Hide recent items preview
+! Hide My Stuff preview rail
 gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
