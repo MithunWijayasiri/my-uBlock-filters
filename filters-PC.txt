@@ -21,9 +21,6 @@ youtube.com##ytd-rich-item-renderer:has([href*="start_radio=1"])
 ! Remove mix entries from sidebar and related lists
 youtube.com##ytd-compact-radio-renderer, :is(#related yt-lockup-view-model,ytd-compact-video-renderer):has([href*="&start_radio=1"])
 
-! Remove mix entries from search results
-youtube.com##ytd-radio-renderer, :is(ytd-search yt-lockup-view-model,ytd-video-renderer[is-search]):has([href*="&start_radio=1"][aria-label])
-
 ! Hide mix suggestions on end cards
 youtube.com##.ytp-videowall-still[data-is-mix="true"]
 
@@ -85,6 +82,7 @@ music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/r
 
 ! Remove nano banana promo banner
 gemini.google.com##.ng-star-inserted.ng-tns-c1903904110-0.experiment-driven-banner
+##.ng-star-inserted.ng-tns-c2803083507-0.experiment-driven-banner
 
 ! Hide My Stuff preview rail
 gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
