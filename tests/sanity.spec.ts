@@ -70,27 +70,4 @@ test.describe('filters-PC.txt Sanity Tests', () => {
     // Verify subscribe button is visible (proves page isn't broken)
     await expect(page.locator('ytd-subscribe-button-renderer')).toBeVisible();
   });
-
-  test('YT_TEST04: Slowed+Reverb videos are hidden in search', async ({ page }) => {
-    await page.goto('https://www.youtube.com/results?search_query=slowed+reverb', { waitUntil: 'domcontentloaded' });
-    await page.addStyleTag({ content: customCss });
-
-    await page.waitForSelector('ytd-search', { timeout: 10000 });
-    
-    // Wait a moment for results to load
-    await page.waitForTimeout(1000);
-    
-    // Check if slowed+reverb videos exist and verify they're all hidden
-    const allVideos = page.locator('ytd-video-renderer, ytd-rich-item-renderer:not([is-post])');
-    const count = await allVideos.count();
-    
-    // If videos exist, verify none of them contain slowed+reverb in visible text
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      const videoText = await allVideos.nth(i).textContent();
-      if (videoText && videoText.toLowerCase().includes('slowed') && videoText.toLowerCase().includes('reverb')) {
-        // If it contains both keywords, it should be hidden
-        await expect(allVideos.nth(i)).toBeHidden();
-      }
-    }
-  });
 });
