@@ -38,17 +38,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v5
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
       - uses: actions/setup-node@v5
         with:
-          node-version: lts/*
-
-      - name: Enable Corepack and activate pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@9 --activate
+          node-version: 24
+          cache: 'pnpm'
 
       - name: Capture Playwright version
         id: pw-version
@@ -63,24 +65,26 @@ jobs:
       - name: Cache pnpm store
         uses: actions/cache@v5
         with:
-          path: ~/.pnpm-store
+          path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
       - name: Cache Playwright browsers
+        id: cache-pw
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: pw-browsers-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers (Chromium only)
+        if: steps.cache-pw.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: pnpm exec playwright test --reporter=json,html
+        run: pnpm exec playwright test --project=chromium --reporter=github,html
 
   release-filters:
     needs: test-rules
