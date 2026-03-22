@@ -15,7 +15,7 @@ jobs:
     outputs:
       has_changes: ${{ steps.check.outputs.has_changes }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       
@@ -38,17 +38,18 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: lts/*
+          run_install: false
 
-      # Setup pnpm
-      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v5
         with:
-          version: 9
+          node-version: 24
+          cache: 'pnpm'
 
       - name: Capture Playwright version
         id: pw-version
@@ -61,26 +62,28 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
-          path: ~/.pnpm-store
+          path: ~/.local/share/pnpm/store
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        id: cache-pw
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: pw-browsers-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright Browsers (Chromium only)
+        if: steps.cache-pw.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: pnpm exec playwright test --reporter=json,html
+        run: pnpm exec playwright test --project=chromium --reporter=github,html
 
   release-filters:
     needs: test-rules
@@ -88,7 +91,7 @@ jobs:
     if: github.ref == 'refs/heads/workspace'
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main 
           fetch-depth: 0

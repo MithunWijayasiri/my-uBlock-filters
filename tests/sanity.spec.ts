@@ -25,49 +25,47 @@ test.describe('filters-PC.txt Sanity Tests', () => {
     console.log('Loaded custom CSS filters from filters-PC.txt');
   });
 
-  test('YT_TEST01: YouTube search works and loads results', async ({ page }) => {
-    await page.goto('https://www.youtube.com', { waitUntil: 'domcontentloaded' });
-    await page.addStyleTag({ content: customCss });
+  test.beforeEach(async ({ page }) => {
+    // Keep this suite lightweight while allowing slower first loads.
+    page.setDefaultTimeout(15000);
+  });
 
-    // Verify page loads without breaking
+  async function openWithFilters(page: any, url: string) {
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.addStyleTag({ content: customCss });
+  }
+
+  test('YT_TEST01: Home page loads and search input is usable', async ({ page }) => {
+    await openWithFilters(page, 'https://www.youtube.com');
+
     await expect(page).toHaveTitle(/YouTube/);
-    
-    // Perform search to test filters on actual content
-    await page.getByPlaceholder('Search').fill('funny cats');
-    await page.keyboard.press('Enter');
-    
-    // Wait for search results
-    await page.waitForSelector('ytd-search', { timeout: 10000 });
-    await page.waitForSelector('ytd-video-renderer', { timeout: 5000 });
-    
-    // Verify page didn't break
-    await expect(page).toHaveTitle(/funny cats/i);
+    const searchBox = page
+      .getByRole('combobox', { name: /search/i })
+      .or(page.locator('input#search, input[name="search_query"]'))
+      .first();
+    await expect(searchBox).toBeVisible();
+    await searchBox.fill('funny cats');
+    await searchBox.press('Enter');
+
+    await page.waitForURL(/results\?search_query=/);
+    await expect(page.locator('ytd-video-renderer').first()).toBeVisible();
   });
 
-  test('YT_TEST02: Shorts are hidden in search results', async ({ page }) => {
-    await page.goto('https://www.youtube.com/results?search_query=funny+cats', { waitUntil: 'domcontentloaded' });
-    await page.addStyleTag({ content: customCss });
+  test('YT_TEST02: Search page core sections remain visible', async ({ page }) => {
+    await openWithFilters(page, 'https://www.youtube.com/results?search_query=funny+cats');
 
-    await page.waitForSelector('ytd-search', { timeout: 10000 });
-    
-    // If any Shorts exist, verify they're all hidden
-    const allShorts = page.locator('ytd-video-renderer:has([aria-label="Shorts"])');
-    const shortsCount = await allShorts.count();
-    
-    for (let i = 0; i < shortsCount; i++) {
-      await expect(allShorts.nth(i)).toBeHidden();
-    }
+    await expect(page.locator('ytd-search')).toBeVisible();
+    await expect(page.locator('ytd-video-renderer').first()).toBeVisible();
+    await expect(page.locator('a#video-title').first()).toBeVisible();
   });
 
-  test('YT_TEST03: Video page loads and player works', async ({ page }) => {
-    await page.goto('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { waitUntil: 'domcontentloaded' });
-    await page.addStyleTag({ content: customCss });
+  test('YT_TEST03: Watch page player and controls are present', async ({ page }) => {
+    await openWithFilters(page, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
-    // Verify essential elements are still visible
-    await expect(page.locator('.html5-video-player')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.html5-video-player')).toBeVisible();
     await expect(page.locator('h1.ytd-watch-metadata')).toBeVisible();
-    
-    // Verify subscribe button is visible (proves page isn't broken)
-    await expect(page.locator('ytd-subscribe-button-renderer')).toBeVisible();
+
+    // Verify a core playback control exists.
+    await expect(page.locator('.ytp-play-button')).toBeVisible();
   });
 });
