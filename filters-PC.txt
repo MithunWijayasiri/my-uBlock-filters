@@ -97,6 +97,9 @@ www.youtube.com###foreground-content
 www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents ytd-rich-item-renderer yt-content-metadata-view-model > div + div > span:first-child:not(:has-text(/(\d[KMB]|\d\D\d{3})\b/)):upward(ytd-rich-item-renderer)
 ! for shorts
 www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents ytd-rich-section-renderer ytd-rich-item-renderer h3 + .shortsLockupViewModelHostOutsideMetadataSubhead > span:not(:has-text(/(\d[KMB]|\d\D\d{3})\b/i)):upward(ytd-rich-item-renderer)
+
+! === Meta AI ===
+
 www.meta.ai##.min-h-0.flex.flex-col.w-full.min-w-0.bg-bg-sidebar.relative.z-10.shrink-0.pe-2 > .text-subheadline.mt-px.w-full > .flex.w-full.min-w-0.flex-col.gap-px > li.group\/menu-item.relative:nth-of-type(3) > div:nth-of-type(1) > .peer\/menu-button.group-hover\/menu-item\:bg-fill-secondary-elevated.group-has-focus-visible\/menu-item\:bg-fill-secondary-elevated.group-has-data-\[opened\=true\]\/menu-item\:bg-fill-secondary-elevated.active\:bg-fill-secondary-elevated.data-\[active\=true\]\:bg-fill-secondary-elevated.text-subheadline.data-\[active\=true\]\:text-subheadline-medium.data-\[opened\=true\]\:hover\:bg-fill-secondary-elevated.data-\[opened\=true\]\:hover\:text-text-primary.rounded-12.flex.h-8.w-full.cursor-pointer.items-center.gap-1\.5.overflow-hidden.py-1\.5.text-start.select-none.-outline-offset-2.ps-1.pe-3
 
 ! === YouTube Music ===
