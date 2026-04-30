@@ -119,6 +119,8 @@ gemini.google.com##.ng-star-inserted.ng-tns-c2803083507-0.experiment-driven-bann
 ! Hide My Stuff preview rail
 gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
 
-#block reddit games section
+! === Reddit ===
+
+! Block Reddit games section
 www.reddit.com##faceplate-tracker[noun="games_drawer"]
 www.reddit.com##faceplate-tracker[noun="games_drawer"] + hr
