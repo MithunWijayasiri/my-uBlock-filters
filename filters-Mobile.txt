@@ -6,10 +6,15 @@
 ! Expires: 1 day
 ! Homepage: https://github.com/MithunWijayasiri/my-uBlock-filters
 
+! === Google ===
+
 ! Allow AI overview cards
 google.com#@#.YzCcne:remove()
 
+! === YouTube Mobile ===
+
 ! Remove mix and auto-playlist tiles
+
 ! Hide mix shelves in search and home
 m.youtube.com##ytm-radio-renderer
 m.youtube.com##ytm-compact-radio-renderer
@@ -24,16 +29,17 @@ m.youtube.com##ytm-video-with-context-renderer:has(a[href*="list=RD"])
 m.youtube.com##ytm-compact-video-renderer:has(a[href*="list=RD"])
 
 ! Trim navigation UI elements
+
 ! Remove topic filter bar
 m.youtube.com##ytm-feed-filter-chip-bar-renderer
 
 ! Hide slowed and reverb videos
-! Suppress videos tagged slowed and reverb
 m.youtube.com##ytm-video-with-context-renderer:has-text(/slowed/i):has-text(/reverb/i)
 m.youtube.com##ytm-compact-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 m.youtube.com##ytm-rich-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 
+! === YouTube Music ===
+
 ! Hide slowed and reverb tracks
-! Suppress tracks tagged slowed and reverb
 music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)

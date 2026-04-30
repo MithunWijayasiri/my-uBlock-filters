@@ -6,11 +6,20 @@
 ! Expires: 1 day
 ! Homepage: https://github.com/MithunWijayasiri/my-uBlock-filters
 
+! === Google ===
+
 ! Allow AI overview cards
 google.com#@#.YzCcne:remove()
 
 ! Block third-party sign-in prompts
 ||accounts.google.com/gsi/*$xhr,script,3p
+
+! Hide "Choose Chrome" promotions
+google.com##.nAg61b
+google.com##.B525H
+google.com##.Wq557d
+
+! === YouTube ===
 
 ! Reduce auto-generated mix playlists
 ! Source: uBO community YouTube solutions
@@ -74,20 +83,7 @@ www.youtube.com##ytd-rich-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
 www.youtube.com##ytd-compact-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 www.youtube.com##ytd-grid-video-renderer:has-text(/slowed/i):has-text(/reverb/i)
 
-! Hide slowed and reverb tracks
-music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
-music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
-
-! Tidy Gemini interface
-
-! Remove nano banana promo banner
-gemini.google.com##.ng-star-inserted.ng-tns-c1903904110-0.experiment-driven-banner
-##.ng-star-inserted.ng-tns-c2803083507-0.experiment-driven-banner
-
-! Hide My Stuff preview rail
-gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
-
-! YouTube: Hide < 1K Views (Basic & Lightweight)
+! Hide < 1K views (basic & lightweight)
 www.youtube.com##:is(ytd-rich-item-renderer, ytd-compact-video-renderer, ytd-video-renderer):has(#metadata-line span:has-text(/^\d{1,3} views$/)):not(:has-text(/New/))
 
 ! YT Player End Cards - Hide Videos Below 1K Views
@@ -96,9 +92,30 @@ www.youtube.com##.ytp-videowall-still[aria-label~="views"]:not(:is([aria-label*=
 ! YT Hide Premium Promo Banner
 www.youtube.com###foreground-content
 
-! Hide "Choose Chrome" promotions
-google.com##.nAg61b
-google.com##.B525H
-google.com##.Wq557d
+#block YT 1K Below Videos
+! for videos
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents ytd-rich-item-renderer yt-content-metadata-view-model > div + div > span:first-child:not(:has-text(/(\d[KMB]|\d\D\d{3})\b/)):upward(ytd-rich-item-renderer)
+! for shorts
+www.youtube.com##ytd-browse[page-subtype="home"] ytd-rich-grid-renderer #contents ytd-rich-section-renderer ytd-rich-item-renderer h3 + .shortsLockupViewModelHostOutsideMetadataSubhead > span:not(:has-text(/(\d[KMB]|\d\D\d{3})\b/i)):upward(ytd-rich-item-renderer)
+www.meta.ai##.min-h-0.flex.flex-col.w-full.min-w-0.bg-bg-sidebar.relative.z-10.shrink-0.pe-2 > .text-subheadline.mt-px.w-full > .flex.w-full.min-w-0.flex-col.gap-px > li.group\/menu-item.relative:nth-of-type(3) > div:nth-of-type(1) > .peer\/menu-button.group-hover\/menu-item\:bg-fill-secondary-elevated.group-has-focus-visible\/menu-item\:bg-fill-secondary-elevated.group-has-data-\[opened\=true\]\/menu-item\:bg-fill-secondary-elevated.active\:bg-fill-secondary-elevated.data-\[active\=true\]\:bg-fill-secondary-elevated.text-subheadline.data-\[active\=true\]\:text-subheadline-medium.data-\[opened\=true\]\:hover\:bg-fill-secondary-elevated.data-\[opened\=true\]\:hover\:text-text-primary.rounded-12.flex.h-8.w-full.cursor-pointer.items-center.gap-1\.5.overflow-hidden.py-1\.5.text-start.select-none.-outline-offset-2.ps-1.pe-3
 
+! === YouTube Music ===
 
+! Hide slowed and reverb tracks
+music.youtube.com##ytmusic-responsive-list-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+music.youtube.com##ytmusic-two-row-item-renderer:has-text(/slowed/i):has-text(/reverb/i)
+
+! === Gemini ===
+
+! Tidy Gemini interface
+
+! Remove nano banana promo banner
+gemini.google.com##.ng-star-inserted.ng-tns-c1903904110-0.experiment-driven-banner
+gemini.google.com##.ng-star-inserted.ng-tns-c2803083507-0.experiment-driven-banner
+
+! Hide My Stuff preview rail
+gemini.google.com##.my-stuff-recents-preview.ng-star-inserted
+
+#block reddit games section
+www.reddit.com##faceplate-tracker[noun="games_drawer"]
+www.reddit.com##faceplate-tracker[noun="games_drawer"] + hr
