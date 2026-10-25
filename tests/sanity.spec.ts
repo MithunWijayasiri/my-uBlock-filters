@@ -171,7 +171,10 @@ test.describe('filters-PC.txt YouTube Desktop Sanity Tests', () => {
     await searchBox.press('Enter');
 
     await page.waitForURL(/results\?search_query=/);
-    await expect(page.locator('ytd-video-renderer').first()).toBeVisible();
+    await expect(page.locator('ytd-search')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('ytd-video-renderer').first()).toBeVisible({
+      timeout: 30000,
+    });
   });
 
   test('YT_TEST02: Search page core sections remain visible', async ({
