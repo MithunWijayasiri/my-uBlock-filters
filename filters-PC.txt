@@ -15,9 +15,10 @@ google.com#@#.YzCcne:remove()
 ||accounts.google.com/gsi/*$xhr,script,3p
 
 ! Hide "Choose Chrome" promotions
-google.com##.nAg61b
-google.com##.B525H
-google.com##.Wq557d
+www.google.*##G-BOTTOM-SHEET[role="dialog"][aria-labelledby="promo_label_id"]
+
+! Hide "Trending searches" in search dropdown
+www.google.*##.OBMEnb:has(> .ynRric:has-text(Trending searches))
 
 ! === YouTube ===
 
