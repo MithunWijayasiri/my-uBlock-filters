@@ -1,8 +1,8 @@
 [Adblock Plus 2.0]
 ! Title: Custom Filters by Mithun
 ! Description: Personal rules for uBlock Origin, and Brave Shields (Mobile).
-! Version: 202512080000
-! Last modified: 2025-12-08T00:00:00Z
+! Version: 202603220740
+! Last modified: 2026-03-22T07:40:01Z
 ! Expires: 1 day
 ! Homepage: https://github.com/MithunWijayasiri/my-uBlock-filters
 
@@ -15,8 +15,7 @@ google.com#@#.YzCcne:remove()
 
 ! Remove mix and auto-playlist tiles
 
-! Hide mix shelves in search and home
-m.youtube.com##ytm-radio-renderer
+! Hide mix cards in search
 m.youtube.com##ytm-compact-radio-renderer
 
 ! Filter video tiles linking to mix playlists
