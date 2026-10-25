@@ -11,8 +11,8 @@ Produce a uBlock Origin cosmetic filter built from the live DOM, never from gues
 ## Setup — browser for chrome-devtools MCP
 
 - Chrome often missing → MCP launch fails on `channel: stable`.
-- Fix in `C:\Users\John Wick\.config\opencode\opencode.json`, MCP server `chrome-devtools`:
-  `npx -y chrome-devtools-mcp@latest --executablePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"` (or any installed Chromium-channel browser).
+- Fix in `%USERPROFILE%\.config\opencode\opencode.json` (Windows example; or `~/.config/opencode/opencode.json`), MCP server `chrome-devtools`:
+  `npx -y chrome-devtools-mcp@1.12.0 --executablePath "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"` (or any installed Chromium-channel browser).
 - Config edit picked up without app restart (MCP re-spawned with new args).
 - Browser may restart mid-task, invalidating pageId/uid — re-run `list_pages` and re-navigate; found facts stay valid.
 
@@ -46,9 +46,9 @@ Rule: specific > broad. The selector must be unable to hide unrelated site UI.
 
 Syntax first (uBO silently discards invalid cosmetic filters): host present, no `##` inside the selector half, every extended operator documented in uBO wiki "Procedural cosmetic filters". Then:
 
-1. Count: `document.querySelectorAll(sel).length` — must equal the number of visible target instances. Extras → investigate (hidden DOM templates inflate counts; discriminate by id/structure).
+1. Count: For plain-CSS selectors, `document.querySelectorAll(sel).length` — must equal visible target instances. Procedural selectors (`:has-text()`, `:upward()`, etc.) require uBO's filter engine or element picker (native DOM queries do not support procedural pseudo-classes). Extras → investigate.
 2. Adjacent states: reproduce a state where the element must not hide (e.g. typed input replaces trending list) and assert selector matches 0 there.
-3. Inject `sel { display:none !important }` as a style tag → element hidden.
+3. Style injection: For plain-CSS portions, inject `sel { display:none !important }` as a style tag → element hidden.
 4. Page intact: still interactive, no leftover scrim/overlay, screenshots before/after.
 5. Fail → back to Capture, iterate. An unverified filter is not a deliverable.
 
