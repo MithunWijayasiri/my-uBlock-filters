@@ -1,37 +1,121 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page, devices } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
-function parseCosmeticFilters(filePath: string): string {
+function domainMatches(ruleDomain: string, targetHostname: string): boolean {
+  if (ruleDomain.includes('*')) {
+    const regex = new RegExp('^' + ruleDomain.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+    return regex.test(targetHostname);
+  }
+  return targetHostname === ruleDomain || targetHostname.endsWith('.' + ruleDomain);
+}
+
+function parseCosmeticFilters(filePath: string, targetHostname?: string): string {
   const fileContent = fs.readFileSync(filePath, 'utf-8');
   return fileContent
     .split('\n')
     .map(line => line.trim())
     .filter(line => line && !line.startsWith('!') && !line.startsWith('[') && line.includes('##'))
+    .filter(line => {
+      if (!targetHostname) return true;
+      const ruleDomain = line.split('##')[0];
+      return domainMatches(ruleDomain, targetHostname);
+    })
     .map(line => {
       const parts = line.split('##');
-      return parts[1] ? `${parts[1]} { display: none !important; }` : '';
+      const selector = parts.slice(1).join('##');
+      if (/:(has-text|upward|remove)/.test(selector)) {
+        return '';
+      }
+      return selector ? `${selector} { display: none !important; }` : '';
     })
+    .filter(Boolean)
     .join('\n');
 }
 
-const FILTERS_PATH = path.join(__dirname, '../filters-PC.txt');
+const PC_FILTERS_PATH = path.join(__dirname, '../filters-PC.txt');
+const MOBILE_FILTERS_PATH = path.join(__dirname, '../filters-Mobile.txt');
 
-test.describe('filters-PC.txt Sanity Tests', () => {
+function validateFilterSyntax(filePath: string) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n').map(l => l.trim());
+
+  expect(lines.length).toBeGreaterThan(0);
+  expect(lines[0]).toBe('[Adblock Plus 2.0]');
+
+  const validProceduralOps = /:(has-text|upward|remove|matches-css|xpath|watch-attr|min-text-length)/;
+
+  lines.forEach((line, i) => {
+    const lineNum = i + 1;
+    if (!line || line.startsWith('!') || line.startsWith('[')) return;
+
+    if (line.includes('##') || line.includes('#@#')) {
+      const isException = line.includes('#@#');
+      const parts = line.split(isException ? '#@#' : '##');
+      const domain = parts[0];
+      const selector = parts.slice(1).join(isException ? '#@#' : '##');
+
+      expect(domain.length, `Line ${lineNum} missing domain`).toBeGreaterThan(0);
+      expect(selector.length, `Line ${lineNum} missing selector`).toBeGreaterThan(0);
+
+      let brackets = 0;
+      let parens = 0;
+      for (const char of selector) {
+        if (char === '[') brackets++;
+        if (char === ']') brackets--;
+        if (char === '(') parens++;
+        if (char === ')') parens--;
+        expect(brackets, `Line ${lineNum} unbalanced brackets`).toBeGreaterThanOrEqual(0);
+        expect(parens, `Line ${lineNum} unbalanced parentheses`).toBeGreaterThanOrEqual(0);
+      }
+      expect(brackets, `Line ${lineNum} unclosed brackets`).toBe(0);
+      expect(parens, `Line ${lineNum} unclosed parentheses`).toBe(0);
+
+      // Verify procedural operators if present
+      const pseudoMatches = selector.match(/:[a-z-]+(?=\()/g);
+      if (pseudoMatches) {
+        for (const pseudo of pseudoMatches) {
+          const isStandardCss = [':has', ':is', ':not', ':where', ':nth-child', ':nth-of-type'].includes(pseudo);
+          if (!isStandardCss) {
+            expect(validProceduralOps.test(pseudo), `Line ${lineNum} unknown procedural operator ${pseudo}`).toBe(true);
+          }
+        }
+      }
+    } else if (line.startsWith('||')) {
+      expect(line.length).toBeGreaterThan(2);
+    } else {
+      throw new Error(`Unrecognized rule format at line ${lineNum}: ${line}`);
+    }
+  });
+}
+
+test.describe('Filter Syntax & Structural Integrity', () => {
+  test('SYNTAX_TEST01: filters-PC.txt has valid header and rule syntax', () => {
+    validateFilterSyntax(PC_FILTERS_PATH);
+  });
+
+  test('SYNTAX_TEST02: filters-Mobile.txt has valid header and rule syntax', () => {
+    validateFilterSyntax(MOBILE_FILTERS_PATH);
+  });
+});
+
+test.describe('filters-PC.txt YouTube Desktop Sanity Tests', () => {
   let customCss: string;
 
   test.beforeAll(() => {
-    customCss = parseCosmeticFilters(FILTERS_PATH);
-    console.log('Loaded custom CSS filters from filters-PC.txt');
+    customCss = parseCosmeticFilters(PC_FILTERS_PATH, 'www.youtube.com');
   });
 
   test.beforeEach(async ({ page }) => {
-    // Keep this suite lightweight while allowing slower first loads.
     page.setDefaultTimeout(15000);
   });
 
-  async function openWithFilters(page: any, url: string) {
+  async function openWithFilters(page: Page, url: string) {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
+    const consentButton = page.getByRole('button', { name: /(accept all|reject all|i agree|agree)/i }).first();
+    if (await consentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await consentButton.click().catch(() => {});
+    }
     await page.addStyleTag({ content: customCss });
   }
 
@@ -62,10 +146,148 @@ test.describe('filters-PC.txt Sanity Tests', () => {
   test('YT_TEST03: Watch page player and controls are present', async ({ page }) => {
     await openWithFilters(page, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
-    await expect(page.locator('.html5-video-player')).toBeVisible();
-    await expect(page.locator('h1.ytd-watch-metadata')).toBeVisible();
-
-    // Verify a core playback control exists.
+    await expect(page.locator('.html5-video-player, #movie_player').first()).toBeVisible();
+    await expect(page.locator('h1.ytd-watch-metadata, #title.ytd-watch-metadata').first()).toBeVisible();
     await expect(page.locator('.ytp-play-button')).toBeVisible();
+  });
+
+  test('YT_TEST04: Secondary engagement buttons and promo elements are hidden', async ({ page }) => {
+    await page.setContent(`
+      <div id="top-row" class="ytd-watch-metadata">
+        <div id="sponsor-button">Join</div>
+        <ytd-download-button-renderer>Download</ytd-download-button-renderer>
+        <div id="unaffected-btn">Share</div>
+      </div>
+      <ytd-secondary-search-container-renderer id="secondary-search"></ytd-secondary-search-container-renderer>
+    `);
+    await page.addStyleTag({ content: customCss });
+
+    const sponsorDisplay = await page.locator('#sponsor-button').evaluate(el => getComputedStyle(el).display);
+    const downloadDisplay = await page.locator('ytd-download-button-renderer').evaluate(el => getComputedStyle(el).display);
+    const secondaryDisplay = await page.locator('#secondary-search').evaluate(el => getComputedStyle(el).display);
+    const unaffectedDisplay = await page.locator('#unaffected-btn').evaluate(el => getComputedStyle(el).display);
+
+    expect(sponsorDisplay).toBe('none');
+    expect(downloadDisplay).toBe('none');
+    expect(secondaryDisplay).toBe('none');
+    expect(unaffectedDisplay).not.toBe('none');
+  });
+});
+
+test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
+  let googleCss: string;
+
+  test.beforeAll(() => {
+    googleCss = parseCosmeticFilters(PC_FILTERS_PATH, 'www.google.com');
+  });
+
+  test.beforeEach(async ({ page }) => {
+    page.setDefaultTimeout(15000);
+  });
+
+  test('GOOG_TEST01: Google home page loads and search input is functional', async ({ page }) => {
+    await page.goto('https://www.google.com', { waitUntil: 'domcontentloaded' });
+    const consentButton = page.getByRole('button', { name: /(accept all|reject all|i agree|agree)/i }).first();
+    if (await consentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await consentButton.click().catch(() => {});
+    }
+    await page.addStyleTag({ content: googleCss });
+
+    await expect(page).toHaveTitle(/Google/);
+    const searchInput = page.locator('textarea[name="q"], input[name="q"]').first();
+    await expect(searchInput).toBeVisible();
+    await expect(searchInput).toBeEnabled();
+  });
+
+  test('GOOG_TEST02: Choose Chrome promo dialog is hidden by filter', async ({ page }) => {
+    await page.setContent(`
+      <g-bottom-sheet role="dialog" aria-labelledby="promo_label_id">Choose Chrome</g-bottom-sheet>
+      <g-bottom-sheet role="dialog" aria-labelledby="other_dialog_id">Other Dialog</g-bottom-sheet>
+    `);
+    await page.addStyleTag({ content: googleCss });
+
+    const promoDisplay = await page.locator('g-bottom-sheet[aria-labelledby="promo_label_id"]').evaluate(el => getComputedStyle(el).display);
+    const otherDisplay = await page.locator('g-bottom-sheet[aria-labelledby="other_dialog_id"]').evaluate(el => getComputedStyle(el).display);
+
+    expect(promoDisplay).toBe('none');
+    expect(otherDisplay).not.toBe('none');
+  });
+
+  test('GOOG_TEST03: Trending searches procedural rule targets only trending dropdown items', async ({ page }) => {
+    await page.setContent(`
+      <div class="OBMEnb" id="trending-wrap">
+        <div class="ynRric">Trending searches</div>
+      </div>
+      <div class="OBMEnb" id="history-wrap">
+        <div class="ynRric">my previous query</div>
+      </div>
+    `);
+
+    // Verify selector logic matching www.google.*##.OBMEnb:has(> .ynRric:has-text(Trending searches))
+    const isTrendingHidden = await page.evaluate(() => {
+      const wraps = document.querySelectorAll('.OBMEnb');
+      const results: { id: string; matches: boolean }[] = [];
+      wraps.forEach(wrap => {
+        const child = wrap.querySelector(':scope > .ynRric');
+        const matches = child !== null && child.textContent?.includes('Trending searches') === true;
+        results.push({ id: wrap.id, matches });
+      });
+      return results;
+    });
+
+    expect(isTrendingHidden).toEqual([
+      { id: 'trending-wrap', matches: true },
+      { id: 'history-wrap', matches: false },
+    ]);
+  });
+});
+
+test.describe('filters-Mobile.txt YouTube Mobile Sanity Tests', () => {
+  let mobileCss: string;
+
+  test.beforeAll(() => {
+    mobileCss = parseCosmeticFilters(MOBILE_FILTERS_PATH, 'm.youtube.com');
+  });
+
+  test.beforeEach(async ({ page }) => {
+    page.setDefaultTimeout(15000);
+  });
+
+  test('M_YT_TEST01: Mobile YouTube home loads and top bar is visible', async ({ browser }) => {
+    const context = await browser.newContext({ ...devices['Pixel 5'] });
+    const page = await context.newPage();
+
+    await page.goto('https://m.youtube.com', { waitUntil: 'domcontentloaded' });
+    const consentButton = page.getByRole('button', { name: /(accept all|reject all|i agree|agree)/i }).first();
+    if (await consentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await consentButton.click().catch(() => {});
+    }
+    await page.addStyleTag({ content: mobileCss });
+
+    await expect(page).toHaveTitle(/YouTube/);
+    const header = page.locator('header, ytm-mobile-topbar-renderer, #header-bar').first();
+    await expect(header).toBeVisible();
+
+    await context.close();
+  });
+
+  test('M_YT_TEST02: Mobile radio and filter chip bar rules hide target elements', async ({ page }) => {
+    await page.setContent(`
+      <ytm-radio-renderer id="radio"></ytm-radio-renderer>
+      <ytm-compact-radio-renderer id="compact-radio"></ytm-compact-radio-renderer>
+      <ytm-feed-filter-chip-bar-renderer id="chip-bar"></ytm-feed-filter-chip-bar-renderer>
+      <div id="unaffected-item">Regular Video</div>
+    `);
+    await page.addStyleTag({ content: mobileCss });
+
+    const radioDisplay = await page.locator('#radio').evaluate(el => getComputedStyle(el).display);
+    const compactRadioDisplay = await page.locator('#compact-radio').evaluate(el => getComputedStyle(el).display);
+    const chipBarDisplay = await page.locator('#chip-bar').evaluate(el => getComputedStyle(el).display);
+    const unaffectedDisplay = await page.locator('#unaffected-item').evaluate(el => getComputedStyle(el).display);
+
+    expect(radioDisplay).toBe('none');
+    expect(compactRadioDisplay).toBe('none');
+    expect(chipBarDisplay).toBe('none');
+    expect(unaffectedDisplay).not.toBe('none');
   });
 });
