@@ -37,7 +37,6 @@ jobs:
     if: needs.check-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     env:
-      PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v5
@@ -54,11 +53,7 @@ jobs:
       - name: Capture Playwright version
         id: pw-version
         run: |
-          VERSION=$(grep -oP '"@playwright/test":\s*"\^?\K[0-9.]+' package.json)
-          if [ -z "$VERSION" ]; then
-            echo "Could not determine Playwright version" >&2
-            exit 1
-          fi
+          VERSION=$(node -p "require('./package.json').devDependencies['@playwright/test'].replace(/[\^~]/, '')")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
@@ -78,10 +73,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright dependencies (Chromium)
+        run: pnpm exec playwright install-deps chromium
+
       - name: Install Playwright Browsers (Chromium only)
         if: steps.cache-pw.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-
+        run: pnpm exec playwright install chromium
       - name: Run Playwright tests
         run: pnpm exec playwright test --project=chromium --reporter=github,html
 
