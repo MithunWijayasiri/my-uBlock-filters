@@ -15,8 +15,7 @@ google.com#@#.YzCcne:remove()
 
 ! Remove mix and auto-playlist tiles
 
-! Hide mix shelves in search and home
-m.youtube.com##ytm-radio-renderer
+! Hide mix cards in search
 m.youtube.com##ytm-compact-radio-renderer
 
 ! Filter video tiles linking to mix playlists

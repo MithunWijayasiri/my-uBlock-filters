@@ -355,20 +355,16 @@ test.describe('filters-Mobile.txt YouTube Mobile Sanity Tests', () => {
     await context.close();
   });
 
-  test('M_YT_TEST02: Mobile radio and filter chip bar rules hide target elements', async ({
+  test('M_YT_TEST02: Mobile compact radio and filter chip bar rules hide target elements', async ({
     page,
   }) => {
     await page.setContent(`
-      <ytm-radio-renderer id="radio"></ytm-radio-renderer>
       <ytm-compact-radio-renderer id="compact-radio"></ytm-compact-radio-renderer>
       <ytm-feed-filter-chip-bar-renderer id="chip-bar"></ytm-feed-filter-chip-bar-renderer>
       <div id="unaffected-item">Regular Video</div>
     `);
     await page.addStyleTag({ content: mobileCss });
 
-    const radioDisplay = await page
-      .locator('#radio')
-      .evaluate((el) => getComputedStyle(el).display);
     const compactRadioDisplay = await page
       .locator('#compact-radio')
       .evaluate((el) => getComputedStyle(el).display);
@@ -379,7 +375,6 @@ test.describe('filters-Mobile.txt YouTube Mobile Sanity Tests', () => {
       .locator('#unaffected-item')
       .evaluate((el) => getComputedStyle(el).display);
 
-    expect(radioDisplay).toBe('none');
     expect(compactRadioDisplay).toBe('none');
     expect(chipBarDisplay).toBe('none');
     expect(unaffectedDisplay).not.toBe('none');
