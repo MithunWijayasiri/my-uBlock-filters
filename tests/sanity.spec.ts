@@ -57,7 +57,7 @@ function validateFilterSyntax(filePath: string) {
   expect(lines[0]).toBe('[Adblock Plus 2.0]');
 
   const validProceduralOps =
-    /:(has-text|upward|remove|matches-css|xpath|watch-attr|min-text-length)/;
+    /^:(has-text|upward|remove(-attr|-class)?|matches-css(-before|-after)?|xpath|watch-attr|min-text-length)$/;
 
   lines.forEach((line, i) => {
     const lineNum = i + 1;
@@ -299,24 +299,39 @@ test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
       </div>
     `);
 
-    // Verify selector logic matching www.google.*##.OBMEnb:has(> .ynRric:has-text(Trending searches))
-    const isTrendingHidden = await page.evaluate(() => {
-      const wraps = document.querySelectorAll('.OBMEnb');
-      const results: { id: string; matches: boolean }[] = [];
-      wraps.forEach((wrap) => {
-        const child = wrap.querySelector(':scope > .ynRric');
-        const matches =
-          child !== null &&
-          child.textContent?.includes('Trending searches') === true;
-        results.push({ id: wrap.id, matches });
-      });
-      return results;
+    const filtersContent = fs.readFileSync(PC_FILTERS_PATH, 'utf-8');
+    const trendingRule = filtersContent
+      .split('\n')
+      .map((l) => l.trim())
+      .find((l) => l.includes('.OBMEnb') && !l.startsWith('!'));
+
+    expect(
+      trendingRule,
+      'Trending searches filter rule must exist in filters-PC.txt',
+    ).toBeDefined();
+    if (!trendingRule) return;
+
+    const [, rawSelector] = trendingRule.split('##');
+    const pwSelector = rawSelector.replace(
+      /:has-text\(([^)]+)\)/g,
+      ':has-text("$1")',
+    );
+
+    await page.locator(pwSelector).evaluateAll((els) => {
+      for (const el of els) {
+        (el as HTMLElement).style.display = 'none';
+      }
     });
 
-    expect(isTrendingHidden).toEqual([
-      { id: 'trending-wrap', matches: true },
-      { id: 'history-wrap', matches: false },
-    ]);
+    const trendingDisplay = await page
+      .locator('#trending-wrap')
+      .evaluate((el) => getComputedStyle(el).display);
+    const historyDisplay = await page
+      .locator('#history-wrap')
+      .evaluate((el) => getComputedStyle(el).display);
+
+    expect(trendingDisplay).toBe('none');
+    expect(historyDisplay).not.toBe('none');
   });
 });
 
