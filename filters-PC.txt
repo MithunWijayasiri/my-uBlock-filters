@@ -18,7 +18,7 @@ google.com#@#.YzCcne:remove()
 www.google.*##G-BOTTOM-SHEET[role="dialog"][aria-labelledby="promo_label_id"]
 
 ! Hide "Trending searches" in search dropdown
-www.google.*##.OBMEnb:has(> .ynRric:has-text(Trending searches))
+www.google.*##.ynRric, .ynRric+ul
 
 ! === YouTube ===
 
