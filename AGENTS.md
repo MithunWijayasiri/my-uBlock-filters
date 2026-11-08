@@ -6,7 +6,7 @@ Custom uBlock Origin filter lists (`filters-PC.txt` and `filters-Mobile.txt`) pr
 ## Architecture & Data Flow
 - **Single-Branch Model**:
   - `main`: Development target and production release branch consumed by ad blocker subscriptions (`raw.githubusercontent.com/.../main/...`).
-  - Feature branches: short-lived; changes land via PRs to `main`.
+  - Feature branches: short-lived; changes land via PRs to `main`. Release dispatched from an unmerged branch merges it directly (no PR).
 - **Data Flow & Lifecycle**:
   1. **Development**: Edit filter rules (`filters-PC.txt`, `filters-Mobile.txt`) or tests on a feature branch → open PR to `main`.
   2. **CI Validation**: `.github/workflows/ci.yml` runs Biome linting and Playwright test suites on PRs to `main` and pushes to `main`.

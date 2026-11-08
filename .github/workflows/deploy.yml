@@ -23,6 +23,8 @@ jobs:
 
       - name: Check for changes between the selected branch and main
         id: check
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           if [ "${{ inputs.force }}" = "true" ]; then
             echo "Force release requested"
@@ -30,7 +32,6 @@ jobs:
             exit 0
           fi
           git fetch origin main
-          BRANCH="${{ github.ref_name }}"
           # main has no diff to detect; dispatching it publishes (re-stamps headers).
           if [ "$BRANCH" = "main" ]; then
             echo "Releasing main"
@@ -119,11 +120,13 @@ jobs:
           git config --global user.email "bot@my-uBlock-filters.local"
 
       - name: Merge selected branch into main
+        env:
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          BRANCH="${{ github.ref_name }}"
           if [ "$BRANCH" != "main" ]; then
             git fetch origin "$BRANCH"
-            git merge "origin/$BRANCH" --no-ff -m "Merge updates from $BRANCH"
+            git merge "$SHA" --no-ff -m "Merge updates from $BRANCH"
           fi
 
       - name: Update Version Headers
@@ -143,9 +146,9 @@ jobs:
       - name: Commit and Push to Production
         run: |
           git add filters-PC.txt filters-Mobile.txt
-          if git diff --cached --quiet; then
-            echo "Headers already current; nothing to release"
-            exit 0
+          if ! git diff --cached --quiet; then
+            git commit -m "Release: Update version headers to $(date -u +'%Y%m%d%H%M')"
+          else
+            echo "Headers already current; skipping header commit"
           fi
-          git commit -m "Release: Update version headers to $(date -u +'%Y%m%d%H%M')"
           git push origin main
