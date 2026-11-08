@@ -4,19 +4,16 @@
 Custom uBlock Origin filter lists (`filters-PC.txt` and `filters-Mobile.txt`) providing clutter removal and cosmetic cleanups for Google, YouTube (Desktop & Mobile), YouTube Music, Gemini, and Reddit. Filter lists are consumed via raw GitHub URLs from `main`, tested automatically with Playwright and Biome in CI, and released via on-demand GitHub Actions.
 
 ## Architecture & Data Flow
-- **Two-Branch Model**:
-  - `workspace`: Development and staging branch where changes land via PRs or direct commits.
-  - `main`: Production release branch consumed by ad blocker subscriptions (`raw.githubusercontent.com/.../main/...`).
+- **Single-Branch Model**:
+  - `main`: Development target and production release branch consumed by ad blocker subscriptions (`raw.githubusercontent.com/.../main/...`).
+  - Feature branches: short-lived; changes land via PRs to `main`. Release dispatched from an unmerged branch merges it directly (no PR).
 - **Data Flow & Lifecycle**:
-  1. **Development**: Edits to filter rules (`filters-PC.txt`, `filters-Mobile.txt`) or tests target the `workspace` branch.
-  2. **CI Validation**: `.github/workflows/ci.yml` runs Biome linting and Playwright test suites on PRs and pushes to `workspace` and `main`.
-  3. **Release Pipeline**: `.github/workflows/deploy.yml` triggers weekly (Sunday 00:00 UTC) or manually via `workflow_dispatch` (with optional `force: true` input). Scheduled runs execute on the default branch (`main`), so they only run the diff/test jobs; publishing a release requires a manual dispatch on `workspace`.
-     - Diffs `origin/main` vs `origin/workspace` on filter files.
-     - Runs Playwright filter syntax and DOM sanity tests on Chromium.
-     - On success when manually dispatched on `refs/heads/workspace` (the `release-filters` job is gated to that ref; scheduled runs on `main` skip it), merges `origin/workspace` into `main` (`--no-ff`).
-     - Auto-stamps updated timestamp headers (`! Version:` and `! Last modified:`) in both filter files.
-     - Pushes release commit directly to `origin/main` as `FilterBot`.
-  4. **Post-Release Sync**: `workspace` should be fast-forwarded or merged with `main` to retain identical version headers and avoid branch divergence.
+  1. **Development**: Edit filter rules (`filters-PC.txt`, `filters-Mobile.txt`) or tests on a feature branch → open PR to `main`.
+  2. **CI Validation**: `.github/workflows/ci.yml` runs Biome linting and Playwright test suites on PRs to `main` and pushes to `main`.
+  3. **Release Pipeline**: `.github/workflows/deploy.yml` runs on-demand via `workflow_dispatch` only. Pick any branch in the dispatch UI (defaults to `main`); optional `force: true` input.
+     - `check-changes`: `force` → release. Selected branch `main` → release (re-stamps headers). Else diff selected branch vs `origin/main` on filter files → release only if they differ.
+     - `test-rules`: Playwright filter syntax and DOM sanity tests on Chromium against the selected branch.
+     - `release-filters`: checkout `main`; merge selected branch (`--no-ff`) when not `main`; auto-stamp `! Version:` and `! Last modified:` headers in both filter files; commit + push to `origin/main` as `FilterBot`. Skips commit when headers unchanged.
 
 ## Key Directories
 - `.github/workflows/`: CI (`ci.yml`) and automated release (`deploy.yml`) GitHub Actions workflows.
@@ -29,7 +26,7 @@ Custom uBlock Origin filter lists (`filters-PC.txt` and `filters-Mobile.txt`) pr
 - **Apply Lint & Format Fixes**: `pnpm run lint:fix` (runs `biome check --write .`)
 - **Run Tests**: `pnpm run test` or `pnpm exec playwright test`
 - **Run Tests (Specific File)**: `pnpm exec playwright test tests/sanity.spec.ts --project=chromium`
-- **Trigger Force Release**: `gh workflow run deploy.yml --ref workspace -f force=true`
+- **Trigger Release**: `gh workflow run deploy.yml --ref <branch>` (dispatch UI defaults to `main`). Force: `gh workflow run deploy.yml --ref main -f force=true`.
 - **Line Endings**: LF enforced via `.gitattributes` (`* text=auto eol=lf`). Keeps Biome green on Windows where `core.autocrlf=true` would otherwise write CRLF.
 
 ## Code Conventions & Common Patterns
@@ -64,7 +61,7 @@ Custom uBlock Origin filter lists (`filters-PC.txt` and `filters-Mobile.txt`) pr
 - `playwright.config.ts`: Playwright runner settings, Chromium project configuration, YouTube consent cookies (`SOCS`), and timeout defaults.
 - `tests/sanity.spec.ts`: Consolidated test spec covering syntactic verification (`validateFilterSyntax`), YouTube desktop sanity, Google desktop sanity, and YouTube mobile sanity.
 - `biome.json`: Linter and formatter rules, VCS integration, file scopes, and style constraints.
-- `.github/workflows/deploy.yml`: Production release automation orchestrating diff checks, test validation, branch merging, and version header stamping.
+- `.github/workflows/deploy.yml`: On-demand release automation — branch-selectable dispatch, diff checks, test validation, optional branch merge, version header stamping.
 - `.agents/skills/ublock-hide-element/SKILL.md`: Lean workflow plus `references/` (`filter-syntax.md`, `techniques.md`, `verification.md`) for authoring and verifying cosmetic selectors on live DOM using Chrome DevTools.
 
 ## Runtime/Tooling Preferences

@@ -1,9 +1,6 @@
 name: Deploy & Release Filters
 
 on:
-  schedule:
-    # Run once weekly on Sunday at midnight UTC
-    - cron: "0 0 * * 0"
   workflow_dispatch:
     inputs:
       force:
@@ -24,17 +21,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for changes between workspace and main
+      - name: Check for changes between the selected branch and main
         id: check
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           if [ "${{ inputs.force }}" = "true" ]; then
             echo "Force release requested"
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          git fetch origin main workspace
-          # Check if there are any differences between workspace and main
-          if git diff --quiet origin/main origin/workspace -- filters-PC.txt filters-Mobile.txt; then
+          git fetch origin main
+          # main has no diff to detect; dispatching it publishes (re-stamps headers).
+          if [ "$BRANCH" = "main" ]; then
+            echo "Releasing main"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet origin/main HEAD -- filters-PC.txt filters-Mobile.txt; then
             echo "No changes detected in filter files"
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
@@ -105,7 +107,6 @@ jobs:
   release-filters:
     needs: test-rules
     runs-on: ubuntu-24.04
-    if: github.ref == 'refs/heads/workspace'
 
     steps:
       - uses: actions/checkout@v5
@@ -118,9 +119,15 @@ jobs:
           git config --global user.name "FilterBot"
           git config --global user.email "bot@my-uBlock-filters.local"
 
-      - name: Merge Workspace into Main
+      - name: Merge selected branch into main
+        env:
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          git merge origin/workspace --no-ff -m "Merge updates from workspace"
+          if [ "$BRANCH" != "main" ]; then
+            git fetch origin "$BRANCH"
+            git merge "$SHA" --no-ff -m "Merge updates from $BRANCH"
+          fi
 
       - name: Update Version Headers
         run: |
@@ -139,5 +146,9 @@ jobs:
       - name: Commit and Push to Production
         run: |
           git add filters-PC.txt filters-Mobile.txt
-          git commit -m "Release: Update version headers to $(date -u +'%Y%m%d%H%M')"
+          if ! git diff --cached --quiet; then
+            git commit -m "Release: Update version headers to $(date -u +'%Y%m%d%H%M')"
+          else
+            echo "Headers already current; skipping header commit"
+          fi
           git push origin main
