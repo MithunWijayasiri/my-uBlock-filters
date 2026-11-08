@@ -11,6 +11,9 @@
 ! Allow AI overview cards
 google.com#@#.YzCcne:remove()
 
+! Hide "Trending searches" header + list in search dropdown (class-based, locale-independent; mobile analogue of the PC .ynRric rule).
+www.google.*##.WrKXc, .WrKXc+ul
+
 ! === YouTube Mobile ===
 
 ! Remove mix and auto-playlist tiles

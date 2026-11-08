@@ -17,8 +17,9 @@ google.com#@#.YzCcne:remove()
 ! Hide "Choose Chrome" promotions
 www.google.*##G-BOTTOM-SHEET[role="dialog"][aria-labelledby="promo_label_id"]
 
-! Hide "Trending searches" in search dropdown
-www.google.*##.OBMEnb:has(> .ynRric:has-text(Trending searches))
+! Hide "Trending searches" header + list in search dropdown (class-based, locale-independent).
+! Live-verified: the only other .ynRric is a hidden role=presentation template; "People also ask" uses an unclassed span.
+www.google.*##.ynRric, .ynRric+ul
 
 ! === YouTube ===
 

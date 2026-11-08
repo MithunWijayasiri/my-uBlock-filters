@@ -290,15 +290,20 @@ test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
     expect(otherDisplay).not.toBe('none');
   });
 
-  test('GOOG_TEST03: Trending searches procedural rule targets only trending dropdown items', async ({
+  test('GOOG_TEST03: Trending searches header and list are hidden in search dropdown', async ({
     page,
   }) => {
     await page.setContent(`
-      <div class="OBMEnb" id="trending-wrap">
-        <div class="ynRric">Trending searches</div>
-      </div>
-      <div class="OBMEnb" id="history-wrap">
-        <div class="ynRric">my previous query</div>
+      <div>
+        <div class="ynRric" id="trending-header">Trending searches</div>
+        <ul id="trending-list">
+          <li>trending item one</li>
+          <li>trending item two</li>
+        </ul>
+        <div class="ECORcb" id="recent-header">Recent searches</div>
+        <ul id="recent-list">
+          <li>recent item one</li>
+        </ul>
       </div>
     `);
 
@@ -306,7 +311,14 @@ test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
     const trendingRule = filtersContent
       .split('\n')
       .map((l) => l.trim())
-      .find((l) => l.includes('.OBMEnb') && !l.startsWith('!'));
+      .find(
+        (l) =>
+          l.includes('.ynRric') &&
+          !l.startsWith('!') &&
+          l.includes('##') &&
+          !l.includes('#@#') &&
+          domainMatches(l.split('##')[0], 'www.google.com'),
+      );
 
     expect(
       trendingRule,
@@ -315,26 +327,88 @@ test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
     if (!trendingRule) return;
 
     const [, rawSelector] = trendingRule.split('##');
-    const pwSelector = rawSelector.replace(
-      /:has-text\(([^)]+)\)/g,
-      ':has-text("$1")',
-    );
-
-    await page.locator(pwSelector).evaluateAll((els) => {
-      for (const el of els) {
-        (el as HTMLElement).style.display = 'none';
-      }
+    await page.addStyleTag({
+      content: `${rawSelector} { display: none !important; }`,
     });
 
-    const trendingDisplay = await page
-      .locator('#trending-wrap')
+    const trendingHeaderDisplay = await page
+      .locator('#trending-header')
       .evaluate((el) => getComputedStyle(el).display);
-    const historyDisplay = await page
-      .locator('#history-wrap')
+    const trendingListDisplay = await page
+      .locator('#trending-list')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentHeaderDisplay = await page
+      .locator('#recent-header')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentListDisplay = await page
+      .locator('#recent-list')
       .evaluate((el) => getComputedStyle(el).display);
 
-    expect(trendingDisplay).toBe('none');
-    expect(historyDisplay).not.toBe('none');
+    expect(trendingHeaderDisplay).toBe('none');
+    expect(trendingListDisplay).toBe('none');
+    expect(recentHeaderDisplay).not.toBe('none');
+    expect(recentListDisplay).not.toBe('none');
+  });
+});
+
+test.describe('filters-Mobile.txt Google Mobile Sanity Tests', () => {
+  test('M_GOOG_TEST01: Trending searches header and list are hidden in mobile search dropdown', async ({
+    page,
+  }) => {
+    await page.setContent(`
+      <div>
+        <div class="WrKXc" id="trending-header">Trending searches</div>
+        <ul id="trending-list">
+          <li>trending item one</li>
+        </ul>
+        <div class="ECORcb" id="recent-header">Recent searches</div>
+        <ul id="recent-list">
+          <li>recent item one</li>
+        </ul>
+      </div>
+    `);
+
+    const filtersContent = fs.readFileSync(MOBILE_FILTERS_PATH, 'utf-8');
+    const trendingRule = filtersContent
+      .split('\n')
+      .map((l) => l.trim())
+      .find(
+        (l) =>
+          l.includes('.WrKXc') &&
+          !l.startsWith('!') &&
+          l.includes('##') &&
+          !l.includes('#@#') &&
+          domainMatches(l.split('##')[0], 'www.google.com'),
+      );
+
+    expect(
+      trendingRule,
+      'Trending searches filter rule must exist in filters-Mobile.txt',
+    ).toBeDefined();
+    if (!trendingRule) return;
+
+    const [, rawSelector] = trendingRule.split('##');
+    await page.addStyleTag({
+      content: `${rawSelector} { display: none !important; }`,
+    });
+
+    const trendingHeaderDisplay = await page
+      .locator('#trending-header')
+      .evaluate((el) => getComputedStyle(el).display);
+    const trendingListDisplay = await page
+      .locator('#trending-list')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentHeaderDisplay = await page
+      .locator('#recent-header')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentListDisplay = await page
+      .locator('#recent-list')
+      .evaluate((el) => getComputedStyle(el).display);
+
+    expect(trendingHeaderDisplay).toBe('none');
+    expect(trendingListDisplay).toBe('none');
+    expect(recentHeaderDisplay).not.toBe('none');
+    expect(recentListDisplay).not.toBe('none');
   });
 });
 
