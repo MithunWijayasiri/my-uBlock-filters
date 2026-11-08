@@ -13,7 +13,7 @@ permissions:
 jobs:
   lint:
     name: Lint & Format Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
 
@@ -34,7 +34,7 @@ jobs:
 
   test:
     name: Playwright Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
