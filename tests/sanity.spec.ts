@@ -311,11 +311,79 @@ test.describe('filters-PC.txt Google Desktop Sanity Tests', () => {
     const trendingRule = filtersContent
       .split('\n')
       .map((l) => l.trim())
-      .find((l) => l.includes('.ynRric') && !l.startsWith('!'));
+      .find(
+        (l) =>
+          l.includes('.ynRric') &&
+          !l.startsWith('!') &&
+          l.includes('##') &&
+          !l.includes('#@#') &&
+          domainMatches(l.split('##')[0], 'www.google.com'),
+      );
 
     expect(
       trendingRule,
       'Trending searches filter rule must exist in filters-PC.txt',
+    ).toBeDefined();
+    if (!trendingRule) return;
+
+    const [, rawSelector] = trendingRule.split('##');
+    await page.addStyleTag({
+      content: `${rawSelector} { display: none !important; }`,
+    });
+
+    const trendingHeaderDisplay = await page
+      .locator('#trending-header')
+      .evaluate((el) => getComputedStyle(el).display);
+    const trendingListDisplay = await page
+      .locator('#trending-list')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentHeaderDisplay = await page
+      .locator('#recent-header')
+      .evaluate((el) => getComputedStyle(el).display);
+    const recentListDisplay = await page
+      .locator('#recent-list')
+      .evaluate((el) => getComputedStyle(el).display);
+
+    expect(trendingHeaderDisplay).toBe('none');
+    expect(trendingListDisplay).toBe('none');
+    expect(recentHeaderDisplay).not.toBe('none');
+    expect(recentListDisplay).not.toBe('none');
+  });
+});
+
+test.describe('filters-Mobile.txt Google Mobile Sanity Tests', () => {
+  test('M_GOOG_TEST01: Trending searches header and list are hidden in mobile search dropdown', async ({
+    page,
+  }) => {
+    await page.setContent(`
+      <div>
+        <div class="WrKXc" id="trending-header">Trending searches</div>
+        <ul id="trending-list">
+          <li>trending item one</li>
+        </ul>
+        <div class="ECORcb" id="recent-header">Recent searches</div>
+        <ul id="recent-list">
+          <li>recent item one</li>
+        </ul>
+      </div>
+    `);
+
+    const filtersContent = fs.readFileSync(MOBILE_FILTERS_PATH, 'utf-8');
+    const trendingRule = filtersContent
+      .split('\n')
+      .map((l) => l.trim())
+      .find(
+        (l) =>
+          l.includes('.WrKXc') &&
+          !l.startsWith('!') &&
+          l.includes('##') &&
+          !l.includes('#@#') &&
+          domainMatches(l.split('##')[0], 'www.google.com'),
+      );
+
+    expect(
+      trendingRule,
+      'Trending searches filter rule must exist in filters-Mobile.txt',
     ).toBeDefined();
     if (!trendingRule) return;
 

@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Overview
-Custom Adblock Plus and uBlock Origin compatible filter lists (`filters-PC.txt` and `filters-Mobile.txt`) providing clutter removal and cosmetic cleanups for Google, YouTube (Desktop & Mobile), YouTube Music, Gemini, and Reddit. Filter lists are consumed via raw GitHub URLs from `main`, tested automatically with Playwright and Biome in CI, and released via scheduled and on-demand GitHub Actions.
+Custom uBlock Origin filter lists (`filters-PC.txt` and `filters-Mobile.txt`) providing clutter removal and cosmetic cleanups for Google, YouTube (Desktop & Mobile), YouTube Music, Gemini, and Reddit. Filter lists are consumed via raw GitHub URLs from `main`, tested automatically with Playwright and Biome in CI, and released via on-demand GitHub Actions.
 
 ## Architecture & Data Flow
 - **Two-Branch Model**:
@@ -10,10 +10,10 @@ Custom Adblock Plus and uBlock Origin compatible filter lists (`filters-PC.txt` 
 - **Data Flow & Lifecycle**:
   1. **Development**: Edits to filter rules (`filters-PC.txt`, `filters-Mobile.txt`) or tests target the `workspace` branch.
   2. **CI Validation**: `.github/workflows/ci.yml` runs Biome linting and Playwright test suites on PRs and pushes to `workspace` and `main`.
-  3. **Release Pipeline**: `.github/workflows/deploy.yml` triggers weekly (Sunday 00:00 UTC) or manually via `workflow_dispatch` (with optional `force: true` input).
+  3. **Release Pipeline**: `.github/workflows/deploy.yml` triggers weekly (Sunday 00:00 UTC) or manually via `workflow_dispatch` (with optional `force: true` input). Scheduled runs execute on the default branch (`main`), so they only run the diff/test jobs; publishing a release requires a manual dispatch on `workspace`.
      - Diffs `origin/main` vs `origin/workspace` on filter files.
      - Runs Playwright filter syntax and DOM sanity tests on Chromium.
-     - On success when the workflow runs on `refs/heads/workspace` (scheduled or manual dispatch), merges `origin/workspace` into `main` (`--no-ff`).
+     - On success when manually dispatched on `refs/heads/workspace` (the `release-filters` job is gated to that ref; scheduled runs on `main` skip it), merges `origin/workspace` into `main` (`--no-ff`).
      - Auto-stamps updated timestamp headers (`! Version:` and `! Last modified:`) in both filter files.
      - Pushes release commit directly to `origin/main` as `FilterBot`.
   4. **Post-Release Sync**: `workspace` should be fast-forwarded or merged with `main` to retain identical version headers and avoid branch divergence.
@@ -48,14 +48,14 @@ Custom Adblock Plus and uBlock Origin compatible filter lists (`filters-PC.txt` 
   - Mobile list uses `(Mobile)` in Description instead of `(Desktop)`.
 - **Filter Rule Syntax**:
   - Domain-scope cosmetic rules by default: `example.com##selector` or `example.com#@#exception-selector`. Use network rules (`||example.com/...`) only when a request rebuilds the DOM.
-  - Use standard CSS selectors where possible; use uBO procedural pseudo-classes (`:has-text()`, `:upward()`, `:has()`, `:not()`, `:is()`, `:where()`, `:remove()`) only when standard CSS cannot uniquely isolate the element.
+  - Use standard CSS selectors where possible, including native `:has()`, `:not()`, `:is()`, `:where()`. Reserve uBO procedural operators (`:has-text()`, `:upward()`, `:matches-attr()`, `:matches-path()`, `:remove()`, ...) for when standard CSS cannot uniquely isolate the element.
   - Avoid overly generic or fragile tags (e.g. `div:has-text(...)`). Target stable web-component custom tags, container IDs, or data attributes (e.g., `ytd-rich-item-renderer:has(...)`, `G-BOTTOM-SHEET[role="dialog"]`).
   - Comment sections clearly using `! === Section Name ===` and explain the element targeted.
 - **JavaScript / TypeScript Formatting (Biome)**:
   - 2-space indentation.
   - Single quotes (`quoteStyle: "single"`) in JS/TS.
   - Double quotes in JSON (Biome default).
-  - Automatic import organization (`organizeImports.enabled: true`).
+  - Automatic import organization (`assist.actions.source.organizeImports: "on"`, Biome v2).
   - Semicolons required (Biome default `always`).
 
 ## Important Files
@@ -77,7 +77,7 @@ Custom Adblock Plus and uBlock Origin compatible filter lists (`filters-PC.txt` 
 - **Test Categories in `tests/sanity.spec.ts`**:
   1. *Filter Syntax & Structural Integrity*: Tests `SYNTAX_TEST01` and `SYNTAX_TEST02` check header invariants, balanced brackets/parentheses, domain scoping, and permitted procedural pseudo-classes.
   2. *Live Network Sanity Tests*: Tests `YT_TEST01`, `YT_TEST02`, `YT_TEST03`, `GOOG_TEST01`, `M_YT_TEST01` load live pages, inject filter CSS via `page.addStyleTag()`, and assert that search inputs, search results, video players, and mobile top bars remain functional and visible.
-  3. *Synthetic DOM Tests*: Tests `YT_TEST04`, `GOOG_TEST02`, `GOOG_TEST03`, `M_YT_TEST02` mock HTML components in isolation (`page.setContent()`), inject the filter CSS, and verify targeted promo/clutter elements receive `display: none` while unaffected siblings remain visible.
+  3. *Synthetic DOM Tests*: Tests `YT_TEST04`, `GOOG_TEST02`, `GOOG_TEST03`, `M_GOOG_TEST01`, `M_YT_TEST02` mock HTML components in isolation (`page.setContent()`), inject the filter CSS, and verify targeted promo/clutter elements receive `display: none` while unaffected siblings remain visible.
 - **Flakiness Considerations**:
   - Live tests (e.g. `YT_TEST01`) use up to 30s timeouts for dynamic video renderer hydration.
   - Playwright report artifacts (`playwright-report/` and `test-results/`) are uploaded in CI unless cancelled (`if: !cancelled()`, 7-day retention).

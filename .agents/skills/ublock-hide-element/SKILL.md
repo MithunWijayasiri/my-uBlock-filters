@@ -32,23 +32,23 @@ Detail lives in `references/` — read the matching file before that step:
 
 1. Eval a TreeWalker in the page to locate the text node containing the distinct copy.
 2. Walk the ancestor chain, dumping tag name + every attribute per ancestor; stop at the promo's own wrapper (dialog root / overlay container).
-3. Pick the anchor per `references/verification.md` stability order (`#id` → attributes → web-component tag → data flags → class last).
+3. Pick the anchor per `references/verification.md` stability order (`#id` → attributes → web-component tag → data flags → class last). Confirm any `#id` survives a new session and different render sequences; if it shifts, prefer a stable attribute or component tag.
 
 Rule: specific > broad. The selector must be unable to hide unrelated site UI.
 
 ## Choose technique
 
-Default: cosmetic `##`. Per `references/techniques.md`: `display:none` hide → `:remove()` for gaps/scrims → `:remove-attr()` + `:watch-attr()` for class-toggled overlays → `##+js(...)` scriptlet for storage banners that return after reload → narrowed network rule only when a request rebuilds the DOM.
+Default: cosmetic `##`. Per `references/techniques.md`: `display:none` hide → `:remove()` for gaps/scrims → `:remove-class()` + `:watch-attr()` for class-toggled overlays (`:remove-attr()` only for whole attributes) → `##+js(...)` scriptlet for storage banners that return after reload → narrowed network rule only when a request rebuilds the DOM.
 
 ## Build the filter
 
-Per `references/filter-syntax.md`: declarative CSS first, procedural only when plain CSS can't isolate it; smallest resultset in the Element Picker; one procedural per line; host-specific procedural; CSSTree quoting (`:has-text(/slowed/i)`); shared containers guarded by `:has(> .header:has-text(...))`, never bare-hidden.
+Per `references/filter-syntax.md`: declarative CSS first, procedural only when plain CSS can't isolate it; smallest resultset in the Element Picker; no comma-joined procedural selectors (operator chains like `:has-text(X):remove()` are fine); host-specific procedural; CSSTree quoting (`:has-text(/slowed/i)`); shared containers guarded by `:has(> .header:has-text(...))`, never bare-hidden.
 
 ## Verify live (do not skip — completion criterion)
 
-Per `references/verification.md`: Dashboard > My filters paste check → Picker / `querySelectorAll` count → adjacent-state 0 matches → style injection → reload + scroll (shadow/iframe aware) → page intact. Fail → back to Capture, iterate. An unverified filter is not a deliverable.
+Per `references/verification.md`: Dashboard > My filters paste check → enable + **Apply changes** → Picker / `querySelectorAll` count (all target nodes, incl. hidden) → adjacent-state 0 matches → verify the complete candidate in uBO (CSS injection only for plain-CSS; procedural/action filters need the full filter applied) → reload + scroll (shadow/iframe aware) → page intact. Fail → back to Capture, iterate. An unverified filter is not a deliverable.
 
-Report what was verified and what was not (e.g. mobile layout, feeds behind anti-bot walls). Where a surface cannot be verified, require the text guard so its failure mode is a no-op, not over-hiding.
+Report what was verified and what was not (e.g. mobile layout, feeds behind anti-bot walls). A text guard alone does not make an unverified surface safe (`:has-text()` matches ancestors containing the copy). For unverified surfaces, require a verified scope (host, `:matches-path()`, container) or leave the filter inactive.
 
 ## Add to filter list (when asked)
 
